@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Douyu Danmu Overlay",
+  "version": "0.1.0",
+  "description": "Show live danmu over the Douyu stream area.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.douyu.com/*"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
