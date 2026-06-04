@@ -1,6 +1,7 @@
 const STREAM_SELECTOR = ".stream__T55I3";
 const STAGE_CLASS = "dy-danmu-stage";
 const DANMU_CLASS = "dy-danmu-item";
+const STORAGE_KEY = "danmuOverlayEnabled";
 
 const colorTab = {
   "0": "#ffffff",
@@ -21,6 +22,7 @@ let client = null;
 let currentRoomId = null;
 let mockTimer = null;
 let mockIndex = 0;
+let overlayEnabled = false;
 
 const fallbackMessages = [
   { text: "waiting for live danmu...", color: "#ffffff" },
@@ -201,6 +203,10 @@ function createDanmuElement(message, target) {
 }
 
 function pushDanmu(message) {
+  if (!overlayEnabled) {
+    return;
+  }
+
   if (!stage || !mountedTarget || !document.contains(mountedTarget)) {
     remount();
   }
@@ -333,6 +339,10 @@ function createDanmuClient(roomId) {
 }
 
 function ensureClient() {
+  if (!overlayEnabled) {
+    return;
+  }
+
   const roomId = parseRoomId();
 
   if (!roomId) {
@@ -377,6 +387,10 @@ function mount(target) {
 }
 
 function remount() {
+  if (!overlayEnabled) {
+    return;
+  }
+
   const target = findStreamElement();
 
   if (target) {
@@ -384,6 +398,38 @@ function remount() {
   }
 
   ensureClient();
+}
+
+function disableOverlay() {
+  stopFallbackLoop();
+
+  if (client) {
+    client.stop();
+    client = null;
+  }
+
+  currentRoomId = null;
+
+  if (stage) {
+    stage.remove();
+    stage = null;
+  }
+
+  mountedTarget = null;
+}
+
+function setOverlayEnabled(enabled) {
+  if (overlayEnabled === enabled) {
+    return;
+  }
+
+  overlayEnabled = enabled;
+
+  if (overlayEnabled) {
+    remount();
+  } else {
+    disableOverlay();
+  }
 }
 
 const observer = new MutationObserver(remount);
@@ -394,4 +440,15 @@ observer.observe(document.documentElement, {
 });
 
 window.setInterval(remount, 1000);
-remount();
+
+chrome.storage.local.get({ [STORAGE_KEY]: false }, (values) => {
+  setOverlayEnabled(Boolean(values[STORAGE_KEY]));
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes[STORAGE_KEY]) {
+    return;
+  }
+
+  setOverlayEnabled(Boolean(changes[STORAGE_KEY].newValue));
+});

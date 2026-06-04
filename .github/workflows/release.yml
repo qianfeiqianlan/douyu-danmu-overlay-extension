@@ -1,0 +1,39 @@
+name: 发布插件版本
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Node.js环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 获取版本号
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: 打包插件
+        run: zip -r douyu-danmu-overlay-extension.zip . -x ".git/*" ".github/*" "douyu-danmu-overlay-extension.zip"
+
+      - name: 创建GitHub Release并上传资产
+        uses: softprops/action-gh-release@v1
+        with:
+          files: douyu-danmu-overlay-extension.zip
+          name: v${{ steps.get_version.outputs.VERSION }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

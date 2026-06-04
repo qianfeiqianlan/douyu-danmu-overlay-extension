@@ -3,6 +3,23 @@
   "name": "Douyu Danmu Overlay",
   "version": "0.1.0",
   "description": "Show live danmu over the Douyu stream area.",
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon.png",
+    "32": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  },
+  "action": {
+    "default_title": "Douyu Danmu Overlay",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon.png",
+      "32": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
+  },
   "content_scripts": [
     {
       "matches": ["https://www.douyu.com/*"],
